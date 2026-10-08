@@ -1,0 +1,20 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+
+# Distribution / Packaging
+dist/
+build/
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# Pytest & Cache
+.pytest_cache/
+.coverage
+htmlcov/
