@@ -96,7 +96,7 @@ def main():
     else:
         from nn_htop.ui import launch_htop
         print("Launching nn-htop TUI...")
-        launch_htop(model=model, monitor=monitor, step_delay=args.delay)
+        launch_htop(monitor=monitor, step_delay=args.delay)
 
 
 if __name__ == "__main__":
