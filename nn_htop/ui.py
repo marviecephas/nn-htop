@@ -1,5 +1,6 @@
 """Textual-based TUI for real-time PyTorch neural network layer telemetry."""
 
+import inspect
 import math
 import threading
 import time
@@ -292,8 +293,16 @@ def launch_tui(
             if step_delay > 0:
                 time.sleep(step_delay)
 
-    worker_target = train_fn if train_fn is not None else default_training_runner
-    worker_thread = threading.Thread(target=worker_target, daemon=True)
+    if train_fn is not None:
+        try:
+            if len(inspect.signature(train_fn).parameters) == 0:
+                worker_thread = threading.Thread(target=train_fn, daemon=True)
+            else:
+                worker_thread = threading.Thread(target=train_fn, args=(monitor,), daemon=True)
+        except (ValueError, TypeError):
+            worker_thread = threading.Thread(target=train_fn, daemon=True)
+    else:
+        worker_thread = threading.Thread(target=default_training_runner, daemon=True)
     worker_thread.start()
 
     app = NNHtopApp(

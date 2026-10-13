@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "nn-htop"
-version = "0.1.1"
+version = "0.1.2"
 description = "htop for Neural Networks: A terminal UI monitoring PyTorch layers, activations, and gradients in real-time."
 readme = "README.md"
 requires-python = ">=3.9"

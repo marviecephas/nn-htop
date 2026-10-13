@@ -1,4 +1,5 @@
 import asyncio
+import time
 import pytest
 import torch
 import torch.nn as nn
@@ -121,15 +122,45 @@ def test_launch_signatures_compatibility(monkeypatch):
 
     monkeypatch.setattr(NNHtopApp, "run", MagicMock())
 
+    dummy_fn = lambda: None
     model = SimpleModel()
     with Monitor(model) as monitor:
         # 1. launch_tui(monitor)
-        launch_tui(monitor, step_delay=0.0)
+        launch_tui(monitor, train_fn=dummy_fn, step_delay=0.0)
         # 2. launch_tui(monitor=monitor)
-        launch_tui(monitor=monitor, step_delay=0.0)
+        launch_tui(monitor=monitor, train_fn=dummy_fn, step_delay=0.0)
         # 3. launch_tui(model=model, monitor=monitor)
-        launch_tui(model=model, monitor=monitor, step_delay=0.0)
+        launch_tui(model=model, monitor=monitor, train_fn=dummy_fn, step_delay=0.0)
         # 4. launch_htop(monitor=monitor)
-        launch_htop(monitor=monitor, step_delay=0.0)
+        launch_htop(monitor=monitor, train_fn=dummy_fn, step_delay=0.0)
         # 5. launch_htop(model=model, monitor=monitor)
-        launch_htop(model=model, monitor=monitor, step_delay=0.0)
+        launch_htop(model=model, monitor=monitor, train_fn=dummy_fn, step_delay=0.0)
+
+
+def test_train_fn_zero_arg_and_one_arg_signatures(monkeypatch):
+    """Verify launch_tui supports both 0-arg def train_fn(): and 1-arg def train_fn(monitor):."""
+    from unittest.mock import MagicMock
+    from nn_htop.ui import launch_tui
+
+    monkeypatch.setattr(NNHtopApp, "run", MagicMock())
+
+    called_0_arg = []
+    called_1_arg = []
+
+    def train_fn_zero():
+        called_0_arg.append(True)
+
+    def train_fn_one(m):
+        assert isinstance(m, Monitor)
+        called_1_arg.append(m)
+
+    model = SimpleModel()
+    with Monitor(model) as monitor:
+        # Test 0-arg function
+        launch_tui(monitor, train_fn=train_fn_zero)
+        # Test 1-arg function
+        launch_tui(monitor, train_fn=train_fn_one)
+
+    time.sleep(0.1)
+    assert len(called_0_arg) > 0
+    assert len(called_1_arg) > 0
