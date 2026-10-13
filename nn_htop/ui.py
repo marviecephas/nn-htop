@@ -235,19 +235,31 @@ class NNHtopApp(App):
 
 
 def launch_tui(
-    target: Any,
+    target: Any = None,
+    monitor: Optional[Monitor] = None,
+    model: Optional[Any] = None,
     train_fn: Optional[Callable] = None,
     step_delay: float = 0.05,
+    *args,
+    **kwargs,
 ):
     """Launches the nn-htop TUI for a given Monitor instance or nn.Module."""
-    if isinstance(target, Monitor):
-        monitor = target
-        model = monitor.model
-    elif isinstance(target, nn.Module):
-        model = target
-        monitor = Monitor(model)
+    # Resolve target defensively across all calling conventions
+    candidate = monitor if monitor is not None else (target if target is not None else model)
+    if candidate is None:
+        raise ValueError("A Monitor instance or torch.nn.Module must be provided to launch_tui.")
+
+    if isinstance(candidate, Monitor):
+        resolved_monitor = candidate
+        resolved_model = candidate.model
+    elif isinstance(candidate, nn.Module):
+        resolved_model = candidate
+        resolved_monitor = Monitor(resolved_model)
     else:
-        raise TypeError("target must be an instance of Monitor or torch.nn.Module")
+        raise TypeError(f"Expected Monitor or torch.nn.Module, got {type(candidate).__name__}")
+
+    monitor = resolved_monitor
+    model = resolved_model
 
     stop_event = threading.Event()
     pause_event = threading.Event()

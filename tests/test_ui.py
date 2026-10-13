@@ -112,3 +112,24 @@ def test_ui_decoupled_state_and_5fps_interval():
     assert state_dict["fc1"].mean_activation != 0.0
 
     monitor.remove_hooks()
+
+
+def test_launch_signatures_compatibility(monkeypatch):
+    """Verify launch_tui and launch_htop accept all legacy and modern keyword signatures."""
+    from unittest.mock import MagicMock
+    from nn_htop.ui import launch_tui, launch_htop
+
+    monkeypatch.setattr(NNHtopApp, "run", MagicMock())
+
+    model = SimpleModel()
+    with Monitor(model) as monitor:
+        # 1. launch_tui(monitor)
+        launch_tui(monitor, step_delay=0.0)
+        # 2. launch_tui(monitor=monitor)
+        launch_tui(monitor=monitor, step_delay=0.0)
+        # 3. launch_tui(model=model, monitor=monitor)
+        launch_tui(model=model, monitor=monitor, step_delay=0.0)
+        # 4. launch_htop(monitor=monitor)
+        launch_htop(monitor=monitor, step_delay=0.0)
+        # 5. launch_htop(model=model, monitor=monitor)
+        launch_htop(model=model, monitor=monitor, step_delay=0.0)
